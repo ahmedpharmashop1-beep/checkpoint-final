@@ -1,15 +1,15 @@
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
-import Navbar from './Components/Navbar';
-import Footer from './Components/Footer';
-import Home from './Pages/Home';
-import Login from './Pages/Login';
-import Register from './Pages/Register';
-import FoodList from './Pages/FoodList';
-import AddFood from './Pages/AddFood';
-import EditFood from './Pages/EditFood';
-import Profile from './Pages/Profile';
-import Error from './Pages/Error';
+import Navbar from './components/NavBar/NavBar';
+import Footer from './components/Footer/Footer';
+import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
+import FoodList from './pages/FoodList/FoodList';
+import AddFood from './pages/AddFood/AddFood';
+import EditFood from './pages/EditFood/EditFood';
+import Profile from './pages/Profile/Profile';
+import Error from './pages/Error/Error';
+import Home from './pages/Home/Home';
 import { useEffect } from 'react';
 import { current } from './JS/Actions/user';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,7 +18,7 @@ function App() {
   const isAuth = useSelector((state) => state.userReducer.isAuth);
   const dispatch = useDispatch()
 
-  useEffect(()=> {
+ useEffect(()=> {
     if (localStorage.getItem("token")) {
       dispatch(current())
     } 
@@ -33,7 +33,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/listfood" element={<FoodList />} />
+        <Route path="/foodlist" element={<FoodList />} />
         <Route path="/addfood" element={<AddFood />} />
         <Route path="/editfood/:id" element={<EditFood />} />
         <Route path="/profile" element={<Profile />} />

@@ -1,9 +1,6 @@
-const isAdmin = (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(400).send({errors : [{msg : "Accès réservé aux administrateurs"}]});
-     
-  }
-  next();
-};
-
-module.exports = isAdmin;
+module.exports=function (req,res,next){
+    if(!req.user.isAdmin){
+        return res.status(403).send({errors:[{msg:'Not Admin'}]});
+    }
+    next();
+}

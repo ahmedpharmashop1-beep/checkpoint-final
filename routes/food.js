@@ -1,105 +1,105 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Food = require("../models/Food");
-const cloudinary = require("../middlewares/cloudinary");
-const upload = require("../middlewares/multer");
-const isAuth = require("../middlewares/isAuth");
-const isAdmin = require("../middlewares/isAdmin");
+const Food = require('../Model/food');
+const cloudinary = require('../middlewares/cloudinary');
+const upload = require('../middlewares/multer');
+const isAdmin = require('../middlewares/isAdmin')
+const isAuth = require('../middlewares/isAuth');
+const food = require('../Model/food');
 
 
+router.post("/add-food",upload.single("image"), async (req,res)=> {
+try {
+    var result = await cloudinary.uploader.upload (req.file.path);
+    var newFood=  new food ({
+        name:req.body.name,
+        price:req.body.price,
+        category: req.body.category,
+        profile_image: result.secure_url,
+        cloudinary_id: result.public_id,
+    })
+    console.log(newFood)
+    await newFood.save()
+    res.status(200).send({msg:"food added",newFood})
+} catch (error) {
+ res.status(400).send({msg:"food not added",error:error,})
+}
+})
 
-router.post("/addFood", [isAuth], upload.single("image"), async (req, res) => {
+router.get("/get-foods",[isAdmin],async (req,res)=>{
     try {
-        const result = await cloudinary.uploader.upload(req.file.path);
-        let newFood = new Food({
-            name: req.body.name,
-            price: req.body.price,
-            category: req.body.category,
-            profile_img: result.secure_url,
-            cloudinary_id: result.public_id
-        });
-        await newFood.save();
-        res.status(200).send({success : [{msg : "Food added successfully"}], food: newFood});
+        const foods = await Food.find({})
+        res.status(200).send({foods})
     } catch (error) {
-        res.status(400).send({msg : "Failed to add food", error});
-
+        res.status(400).send({error})
     }
-});
+})
 
-
-router.get("/allFoods", async (req, res) => {
+router.get("/allfood", async (req,res)=>{
     try {
-        const listfood = await Food.find();
-        res.status(200).send({success : [{msg : "Foods retrieved successfully"}], foods: listfood});
-    }
-    catch (error) {
-        res.status(400).send({msg : "Failed to retrieve foods", error});
-    }
-});
-
-router.delete("/:_id", [isAuth, isAdmin], async (req, res) => {
-    try {
-        const foodToDelete = await Food.findById(req.params._id);
-        if (!foodToDelete) {
-            return res.status(404).send({msg : "Food not found"});
-        }
-        if (foodToDelete.cloudinary_id) {
-            await cloudinary.uploader.destroy(foodToDelete.cloudinary_id);
-        }
-        await foodToDelete.deleteOne();
-        res.status(200).send({success : [{msg : "Food deleted successfully"}]});
+        const listfood = await Food.find()
+        res.status(200).send({msg:"list of foods",listfood})
+  
     } catch (error) {
-        res.status(400).send({msg : "Failed to delete food", error});
+        res.status(400).send({msg :"food not found",error})
     }
-});
+})
 
-router.put("/:_id", [isAuth], upload.single("image"), async (req, res) => {
+router.put("/:id",[isAuth,isAdmin],upload.single("image"),async (req,res)=>{
     try {
-        let foodToUpdate = await Food.findById(req.params._id);
-        if (!foodToUpdate) {
-            return res.status(404).send({ msg: "Food not found" });
+        let food = await Food.findById(req.params.id)
+     if(!food){
+        res.status(404).send({error:"food not found"})
+     }
+     if(food.cloudinary_id){
+        await cloudinary.uploader.destroy(food.cloudinary_id)
+     }
+     let result;
+     if(req.file){
+        if(food.cloudinary_id){
+            await cloudinary.uploader.destroy(food.cloudinary_id)
         }
-
-        // Déclarer result pour éviter référence non définie
-        let result;
-
-        if (req.file) {
-            if (foodToUpdate.cloudinary_id) {
-                await cloudinary.uploader.destroy(foodToUpdate.cloudinary_id);
-            }
-            result = await cloudinary.uploader.upload(req.file.path);
-        }
-
-        const data = {
-            name: req.body.name || foodToUpdate.name,
-            price: req.body.price || foodToUpdate.price,
-            category: req.body.category || foodToUpdate.category,
-            profile_img: result ? result.secure_url : foodToUpdate.profile_img,
-            cloudinary_id: result ? result.public_id : foodToUpdate.cloudinary_id
-        };
-
-        const updatedFood = await Food.findByIdAndUpdate(req.params._id, data, { new: true });
-        res.status(200).send({ success: [{ msg: "Food updated successfully" }], food: updatedFood });
+        result = await cloudinary.uploader.upload (req.file.path);
+     }
+     const data={
+         name:req.body.name || food.name,
+         price:req.body.price || food.price,
+         category: req.body.category || food.category,
+         profile_image: result ? result.secure_url : food.profile_image,
+         cloudinary_id: result ? result.public_id : food.cloudinary_id,
+     }
+     const updatedFood = await Food.findByIdAndUpdate(req.params.id, data, { new: true });
+     res.status(200).send({msg:"food updated",food:updatedFood})
+    
     } catch (error) {
-        console.log(error); // Affiche l’erreur exacte dans le terminal
-        res.status(400).send({ msg: "Failed to update food", error });
+        res.status(400).send({msg:"food not updated",error})
     }
-});
+})
 
-router.get("/:_id", async (req, res) => {
+router.delete("/:id",[isAuth,isAdmin],async (req,res)=>{
     try {
-        const food = await Food.findById(req.params._id);
-        if (!food) {
-            return res.status(404).send({msg : "Food not found"});
+        let food = await Food.findById(req.params.id)
+        if(!food){
+            res.status(404).send({error:"food not found"})
         }
-        res.status(200).send({success : [{msg : "Food retrieved successfully"}], food});
+        if(food.cloudinary_id){
+            await cloudinary.uploader.destroy(food.cloudinary_id)
+        }
+        await food.deleteOne()
+        res.status(200).send({msg:"food deleted"})
+    } catch (error) {
+        res.status(400).send({error})
     }
-    catch (error) {
-        res.status(400).send({msg : "Failed to retrieve food", error});
-    }   
-});
+})
 
+router.get("/:id",async (req,res)=>{
+    try {
+        const foodToGet=await Food.findOne({_id:req.params.id})
+        if (!foodToGet) return res.status(404).send({msg:"food not found"})
+        res.status(200).send({msg:"food found",food:foodToGet})
+
+    } catch (error) {
+        res.status(400).send({msg:"food not found",error})
+    }
+})
 module.exports = router;
-
-
-

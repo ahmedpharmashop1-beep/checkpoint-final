@@ -14,7 +14,6 @@ const initialeState={
     isAdmin:false
 }
 
-
 const userReducer=(state=initialeState,{type,payload})=> {
        switch (type) {
             case LOAD_USER:

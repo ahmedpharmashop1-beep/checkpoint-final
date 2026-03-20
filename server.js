@@ -1,33 +1,23 @@
 const express = require('express');
-
-const dotenv = require('dotenv');
 const cors = require('cors');
-
-const connectDB = require('./config/connectDB');
-const userRoutes = require('./routes/user');
-
-dotenv.config();
-
-const app = express();
-
+const app = express(); // creation d'instance
+app.use(express.json()); // middleware pour parser le json
 app.use(cors());
-app.use(express.json());
+require('dotenv').config();
 
-// Connexion DB
+
+// connection to the database
+const connectDB = require('./config/connectDB');
 connectDB();
 
-// Routes
-app.use('/api/user', userRoutes);
+//create routes
+app.use('/api/user', require('./routes/user'));
 app.use('/api/food', require('./routes/food'));
 
-// Route test
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
 
-
-const PORT = process.env.PORT || 7000;
-// Démarrage du serveur 
-app.listen(PORT,error=>{
-error? console.error("Server failed to start", error) : console.log(`Server is running on port ${PORT}`);
+// server listening
+const PORT = process.env.PORT || 5001;
+app.listen(PORT,error => {
+    error ? console.error (`fail to connect,${error}`) :
+    console.log(`Connected to MongoDB on port ${PORT}`);
 });

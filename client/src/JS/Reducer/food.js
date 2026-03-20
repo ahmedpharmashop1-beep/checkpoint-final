@@ -1,4 +1,4 @@
-const { LOAD_FOOD, GET_FOOD, GET_ONE_FOOD, FAIL_FOOD } = require("../ActionTypes/food");
+const { ADD_FOOD, LOAD_FOOD, GET_FOOD, GET_ONE_FOOD, FAIL_FOOD } = require("../ActionTypes/food");
 
 
 
@@ -27,10 +27,13 @@ const foodReducer=(state=initialState,{type,payload})=> {
          return{...state,load:true}
          
           case GET_FOOD:
-         return{...state,load:false,listFood:payload.listFood}
+         return{...state,load:false,listFood:payload.listfood}
         
          case GET_ONE_FOOD:
-                return {...state , load : false ,foodToGet : payload.foodToGet }
+                return { ...state, load: false, foodToGet: payload.food || payload.foodToGet }
+
+        case ADD_FOOD:
+                return {...state, load: false, listFood: [payload.newFood, ...state.listFood]}
 
       case FAIL_FOOD:
 
